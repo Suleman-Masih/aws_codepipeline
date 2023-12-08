@@ -97,18 +97,5 @@ task_definition = {
     fargate_cpu    = 1024
     fargate_memory = 2048
     port           = 8000
-  },
-  grpc = {
-    name           = "grpc"
-    fargate_cpu    = 1024
-    fargate_memory = 2048
-    port           = 3001
   }
-  crons = {
-    name           = "crons"
-    fargate_cpu    = 1024
-    fargate_memory = 2048
-    port           = 8002
-  }
-
 }
