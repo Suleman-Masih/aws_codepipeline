@@ -83,3 +83,103 @@ data "aws_iam_policy_document" "ecsexec" {
 
 }
 
+
+
+
+
+#-----------------------------------------------
+#   Code Build IAM role
+#-----------------------------------------------
+resource "aws_iam_policy" "codebuild_policy" {
+  name        = "${var.prefix.environment}-${var.prefix.name}-codebuild-policy"
+  description = "IAM policy for ${var.prefix.environment}-${var.prefix.name} CodeBuild project"
+
+  policy = <<-POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:*:*:*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:PutObject"
+      ],
+      "Resource": ["arn:aws:s3:::artifact-bucket/*"]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "codepipeline:PutJobSuccessResult",
+        "codepipeline:PutJobFailureResult"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_role" "codebuild_role" {
+  name = "${var.prefix.environment}-${var.prefix.name}-codebuild-role"
+
+  assume_role_policy = <<-POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "codebuild.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_role_policy_attachment" "codebuild_policy_attachment" {
+  policy_arn = aws_iam_policy.codebuild_policy.arn
+  role       = aws_iam_role.codebuild_role.name
+}
+
+
+#--------------------------------------------------------
+#             CodeDeploy
+#--------------------------------------------------------
+
+
+resource "aws_iam_role" "codedeploy_ecs_role" {
+  name = "codedeploy-ecs-role"
+
+  assume_role_policy = <<-POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": ["codedeploy.amazonaws.com", "ecs-tasks.amazonaws.com"]
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_policy_attachment" "codedeploy_ecs_policy_attachment" {
+  name       = "codedeploy-ecs-policy-attachment"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole" # Use an existing CodeDeploy managed policy or create a custom one
+  roles      = [aws_iam_role.codedeploy_ecs_role.name]
+}

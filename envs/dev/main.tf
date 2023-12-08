@@ -90,3 +90,26 @@ module "ecs" {
   ecs_service          = var.ecs_service.api
 
 }
+
+#-------------------------------------------------------------
+#                        CodeBuild
+#-------------------------------------------------------------
+
+module "codebuild" {
+  source         = "../../modules/codebuild"
+  prefix         = var.prefix
+  codebuild_role = module.iam.codebuild_role_arn
+}
+
+#------------------------------------------------------------
+#                       CodeDeploy
+#------------------------------------------------------------
+
+module "codedeploy" {
+  source           = "../../modules/codedeploy"
+  prefix           = var.prefix
+  codedeploy_role  = module.iam.codedeploy_role_arn
+  ecs_cluster_name = module.ecs.cluster_name
+  ecs_service_name = module.ecs.service_name
+
+}

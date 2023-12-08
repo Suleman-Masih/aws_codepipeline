@@ -9,3 +9,6 @@ output "cluster_name" {
 output "ecs_task_definition" {
   value = aws_ecs_task_definition.default
 }
+output "service_name" {
+  value = aws_ecs_service.default.name
+}
